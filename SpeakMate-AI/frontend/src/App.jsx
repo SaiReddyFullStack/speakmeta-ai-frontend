@@ -3,122 +3,103 @@ import axios from "axios";
 import { useState, useRef } from "react";
 import "./App.css";
 
-function App() {
+export default function App() {
   const [listening, setListening] = useState(false);
-  const [transcript, setTranscript] = useState("");
   const [reply, setReply] = useState("");
   const [loading, setLoading] = useState(false);
 
   const recognitionRef = useRef(null);
 
+  const API = import.meta.env.VITE_API_URL;
+
   const startListening = () => {
     const SpeechRecognition =
-      window.SpeechRecognition ||
-      window.webkitSpeechRecognition;
+      window.SpeechRecognition || window.webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
-      alert("Speech Recognition not supported");
+      alert("Speech Recognition not supported in this browser");
       return;
     }
 
-    setTranscript("");
-    setReply("");
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+    }
 
     const recognition = new SpeechRecognition();
-
     recognition.lang = "en-US";
-    recognition.continuous = true;
-    recognition.interimResults = true;
-
-    recognitionRef.current = recognition;
+    recognition.interimResults = false;
+    recognition.continuous = false;
 
     recognition.onstart = () => setListening(true);
 
-    recognition.onresult = (event) => {
-      let text = "";
+    recognition.onresult = async (event) => {
+      const text = event.results[0][0].transcript;
 
-      for (let i = 0; i < event.results.length; i++) {
-        text += event.results[i][0].transcript;
+      try {
+        setLoading(true);
+
+        const res = await axios.post(`${API}/api/chat`, { text });
+
+        const aiReply = res.data.reply;
+        setReply(aiReply);
+
+        const speech = new SpeechSynthesisUtterance(aiReply);
+        speech.lang = "en-US";
+
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.speak(speech);
+
+      } catch (err) {
+        console.error("API Error:", err);
+        alert("Failed to get AI response");
+      } finally {
+        setLoading(false);
       }
-
-      setTranscript(text);
     };
 
     recognition.onend = () => setListening(false);
 
+    recognition.onerror = (err) => {
+      console.error("Speech error:", err);
+      setListening(false);
+    };
+
+    recognitionRef.current = recognition;
     recognition.start();
   };
 
-  const stopListening = async () => {
-    recognitionRef.current?.stop();
-
-    if (!transcript.trim()) {
-      alert("No speech detected");
-      return;
+  const stopListening = () => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
     }
-
-    try {
-      setLoading(true);
-
-      const res = await axios.post(
-        "http://localhost:5000/api/chat",
-        { text: transcript }
-      );
-
-      const aiReply = res.data.reply;
-
-      setReply(aiReply);
-
-      const speech = new SpeechSynthesisUtterance(aiReply);
-      speech.lang = "en-US";
-
-      window.speechSynthesis.cancel();
-      window.speechSynthesis.speak(speech);
-    } catch (error) {
-      console.error(error);
-      alert("Failed to get AI response");
-    } finally {
-      setLoading(false);
-    }
+    setListening(false);
   };
 
   return (
     <div className="container">
       <h1>🎤 SpeakMeta AI</h1>
-
-      <p>Speak in English and get AI feedback</p>
+      <p>Speak English → Get AI Response</p>
 
       {!listening ? (
-        <button onClick={startListening}>
-          🎤 Start Speaking
-        </button>
+        <button onClick={startListening}>Start Speaking</button>
       ) : (
-        <button
-          onClick={stopListening}
-          className="listening"
-        >
-          ⏹ Stop Speaking
+        <button className="listening" onClick={stopListening}>
+          Stop Listening
         </button>
       )}
 
-      {listening && <h3>🎙️ Listening...</h3>}
-      {loading && <h3>🤖 Analyzing...</h3>}
+      <h3>
+        {loading ? "🤖 Thinking..." : listening ? "🎙️ Listening..." : "Idle"}
+      </h3>
 
       <div className="card">
-        <h2>Your Speech</h2>
-        <p>{transcript}</p>
+        <h2>AI Reply</h2>
+        <p>{reply || "No response yet..."}</p>
       </div>
 
-      <div className="card">
-        <h2>AI Feedback</h2>
-        <p>{reply}</p>
+      <div className="footer">
+        © 2026 SaiReddy. All Rights Reserved !
       </div>
-
-      <footer className="footer">
-        © 2026 Sai Reddy | Built with React & AI
-      </footer>
     </div>
   );
 }
-
-export default App;
