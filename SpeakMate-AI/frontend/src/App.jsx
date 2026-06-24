@@ -1,6 +1,6 @@
 
-import axios from "axios";
 import { useState, useRef } from "react";
+import API from "./api";
 import "./App.css";
 
 export default function App() {
@@ -9,8 +9,6 @@ export default function App() {
   const [loading, setLoading] = useState(false);
 
   const recognitionRef = useRef(null);
-
-  const API = import.meta.env.VITE_API_URL;
 
   const startListening = () => {
     const SpeechRecognition =
@@ -38,7 +36,7 @@ export default function App() {
       try {
         setLoading(true);
 
-        const res = await axios.post(`${API}/api/chat`, { text });
+        const res = await API.post("/api/chat", { text });
 
         const aiReply = res.data.reply;
         setReply(aiReply);
@@ -48,7 +46,6 @@ export default function App() {
 
         window.speechSynthesis.cancel();
         window.speechSynthesis.speak(speech);
-
       } catch (err) {
         console.error("API Error:", err);
         alert("Failed to get AI response");
@@ -97,9 +94,7 @@ export default function App() {
         <p>{reply || "No response yet..."}</p>
       </div>
 
-      <div className="footer">
-        © 2026 SaiReddy. All Rights Reserved !
-      </div>
+      <div className="footer">© 2026 SaiReddy. All Rights Reserved</div>
     </div>
   );
 }
