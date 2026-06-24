@@ -1,0 +1,38 @@
+/* 
+body {
+  font-family: Arial, sans-serif;
+  background: #0f172a;
+  color: white;
+  margin: 0;
+  padding: 0;
+}
+
+.container {
+  text-align: center;
+  margin-top: 50px;
+}
+
+.btn {
+  padding: 12px 20px;
+  font-size: 18px;
+  background: #22c55e;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  color: white;
+}
+
+.btn:hover {
+  background: #16a34a;
+}
+
+.box {
+  margin-top: 20px;
+  padding: 15px;
+  background: #1e293b;
+  border-radius: 10px;
+  width: 60%;
+  margin-left: auto;
+  margin-right: auto;
+}
+ */
