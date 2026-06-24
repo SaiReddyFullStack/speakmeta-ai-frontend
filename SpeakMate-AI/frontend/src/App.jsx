@@ -56,8 +56,7 @@ export default function App() {
 
     recognition.onend = () => setListening(false);
 
-    recognition.onerror = (err) => {
-      console.error("Speech error:", err);
+    recognition.onerror = () => {
       setListening(false);
     };
 
@@ -94,7 +93,8 @@ export default function App() {
         <p>{reply || "No response yet..."}</p>
       </div>
 
-      <div className="footer">© 2026 SaiReddy. All Rights Reserved</div>
+      <div className="footer">
+        © 2026 SaiReddy. All Rights Reserved</div>
     </div>
   );
 }
